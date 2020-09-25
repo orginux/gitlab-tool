@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -8,40 +9,68 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-const (
-	// gitlabToken = "osR6f8FqsTdx9xgZSZYf"
-	projectID = 17397134
-	jobName   = "build_2"
-	fileName  = "simple_file.txt"
-)
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "gitlab-tools",
-	Short:   "CLI for GitLab API",
-	Example: "gitlab-tools download --token ***",
+	Use:              "gitlab-tool",
+	Short:            "Provides a gitlab command-line tool to interact with GitLab",
+	TraverseChildren: true,
 	// TODO BashCompletionFunction:
-	Version: "v0.3.1",
+	Version: "v0.8.0",
 }
 
 func init() {
-	//	cobra.OnInitialize(initConfig)
+	var gitlabURL string
+	rootCmd.PersistentFlags().StringVarP(&gitlabURL, "gitlab-url", "u", "", "URL for the GitLab server or use CI_SERVER_URL (default 'gitlab.com')")
 
 	var privateToken string
-	// TODO get toket from env
-	rootCmd.PersistentFlags().StringVarP(&privateToken, "token", "t", "", "GitLab private token")
-	rootCmd.MarkPersistentFlagRequired("token")
+	rootCmd.PersistentFlags().StringVarP(&privateToken, "token", "t", "", "gitLab personal access token or use GITLAB_PRIVATE_TOKEN")
 
-	rootCmd.AddCommand(download)
+	var verbose bool
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Verbose mode")
+
+	var projectID int
+	rootCmd.PersistentFlags().IntVarP(&projectID, "project-id", "p", 0, "project ID")
+	rootCmd.MarkPersistentFlagRequired("project-id")
 }
 
-// func initConfig() {
-// }
+// Get GitLab token
+// If the 'token' flag is not set, try to read from the environment variable
+func getToken() (string, error) {
+	if flagToken, _ := rootCmd.Flags().GetString("token"); flagToken != "" {
+		return flagToken, nil
+	}
+
+	if envToken, exists := os.LookupEnv("GITLAB_PRIVATE_TOKEN"); exists && envToken != "" {
+		return envToken, nil
+	}
+
+	return "", fmt.Errorf("'token' not set\nUse flag '--token' or set Environment variable 'GITLAB_PRIVATE_TOKEN'")
+}
+
+// Get GitLab url
+// If the 'gitlab-url' flag is not set, try to read from the environment variable "CI_SERVER_URL" (GitLab CI/CD variable),
+// if this variable is not set, the default value is used
+func getGitlabURL() string {
+	if gitlabURL, _ := rootCmd.Flags().GetString("gitlab-url"); gitlabURL != "" {
+		return gitlabURL
+	}
+
+	if envUrl, exists := os.LookupEnv("CI_SERVER_URL"); exists && envUrl != "" {
+		return envUrl
+	}
+
+	// default value
+	return "https://gitlab.com/"
+}
 
 func loginGitlab() *gitlab.Client {
-	privateToken, exists := rootCmd.Flags().GetString("token")
-	log.Printf("exists %v", exists)
-	gl, err := gitlab.NewClient(privateToken)
+	privateToken, err := getToken()
+	if err != nil {
+		log.Fatalf("Token cannot be read: %v", err)
+	}
+
+	gitlabURL := getGitlabURL()
+	gl, err := gitlab.NewClient(privateToken, gitlab.WithBaseURL(gitlabURL))
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
@@ -53,6 +82,5 @@ func loginGitlab() *gitlab.Client {
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("Failed to create client: %v", err)
-		os.Exit(1)
 	}
 }
