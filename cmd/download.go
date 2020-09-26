@@ -308,8 +308,6 @@ func runDownloadFile(cmd *cobra.Command) {
 		_, err := unzip(filePath, directory, keepSourceArchive)
 		if err != nil {
 			log.Fatal("Unzip error: ", err)
-		} else {
-			os.Exit(1)
 		}
 	}
 }
