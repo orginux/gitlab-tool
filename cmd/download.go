@@ -202,7 +202,7 @@ func saveArtifacts(gl *gitlab.Client, projectID, jobID int, refspec, jobName, fi
 	return filePath, nil
 }
 
-func unzip(src, dest string, keepSourceArchive bool) ([]string, error) {
+func unzip(src, dest string, keepSourceArchive, verbose bool) ([]string, error) {
 	var filenames []string
 
 	r, err := zip.OpenReader(src)
@@ -246,6 +246,10 @@ func unzip(src, dest string, keepSourceArchive bool) ([]string, error) {
 		// Close the file without defer to close before next iteration of loop
 		outFile.Close()
 		rc.Close()
+
+		if verbose {
+			log.Println("Extract: ", fpath)
+		}
 
 		if err != nil {
 			return filenames, err
@@ -305,7 +309,7 @@ func runDownloadFile(cmd *cobra.Command) {
 	}
 
 	if extract && fileName == "" {
-		_, err := unzip(filePath, directory, keepSourceArchive)
+		_, err := unzip(filePath, directory, keepSourceArchive, verbose)
 		if err != nil {
 			log.Fatal("Unzip error: ", err)
 		} else {
