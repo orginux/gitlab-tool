@@ -43,7 +43,7 @@ func init() {
 	var createDir bool
 	dlFlags.BoolVarP(&createDir, "create-dirs", "c", false, "create necessary local directory hierarchy")
 
-	// TODO
+	// TODO specifc pipeline status
 	// var status string
 	// dlFlags.StringVarP(&status, "pipeline-status", "s", "success", "status of pipelines, one of: manual, failed, canceled;")
 
@@ -141,7 +141,7 @@ func downloadFile(gl *gitlab.Client, projectID, jobID int, fileName, filePath st
 	return nil
 }
 
-// create parent directory for specified file
+// create a parent directory for file
 func createDirForFile(file string) error {
 	parentDir := filepath.Dir(file)
 	err := os.MkdirAll(parentDir, 0775)
@@ -151,6 +151,7 @@ func createDirForFile(file string) error {
 	return nil
 }
 
+// save file artifacts on host
 func saveArtifacts(gl *gitlab.Client, projectID, jobID int, refspec, jobName, fileName, directory string, createDir bool) (string, error) {
 	if fileName != "" {
 		// save single file
