@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"archive/zip"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
@@ -43,12 +46,17 @@ func init() {
 	var createDir bool
 	dlFlags.BoolVarP(&createDir, "create-dirs", "c", false, "create necessary local directory hierarchy")
 
+	var keepSourceArchive bool
+	dlFlags.BoolVarP(&keepSourceArchive, "keep-src", "", false, "save archive after extract")
 	// TODO specifc pipeline status
 	// var status string
 	// dlFlags.StringVarP(&status, "pipeline-status", "s", "success", "status of pipelines, one of: manual, failed, canceled;")
 
 	var acceptablePipelinesStatus string
 	dlFlags.StringVarP(&acceptablePipelinesStatus, "acceptable-status", "a", "", "acceptable pipeline status for download artefacts")
+
+	var extract bool
+	dlFlags.BoolVarP(&extract, "extract", "x", false, "extract files from an archive")
 }
 
 // get pipeline ID
@@ -194,6 +202,65 @@ func saveArtifacts(gl *gitlab.Client, projectID, jobID int, refspec, jobName, fi
 	return filePath, nil
 }
 
+func unzip(src, dest string, keepSourceArchive bool) ([]string, error) {
+	var filenames []string
+
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return filenames, err
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		fpath := filepath.Join(dest, f.Name)
+
+		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return filenames, fmt.Errorf("%s: illegal file path", fpath)
+		}
+
+		filenames = append(filenames, fpath)
+
+		if f.FileInfo().IsDir() {
+			// Make Folder
+			os.MkdirAll(fpath, os.ModePerm)
+			continue
+		}
+
+		// Make File
+		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+			return filenames, err
+		}
+
+		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return filenames, err
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return filenames, err
+		}
+
+		_, err = io.Copy(outFile, rc)
+
+		// Close the file without defer to close before next iteration of loop
+		outFile.Close()
+		rc.Close()
+
+		if err != nil {
+			return filenames, err
+		}
+	}
+
+	if !keepSourceArchive {
+		err := os.Remove(src)
+		if err != nil {
+			return filenames, err
+		}
+	}
+	return filenames, nil
+}
+
 // General func for download file from artifacts
 func runDownloadFile(cmd *cobra.Command) {
 	gl := loginGitlab()
@@ -209,6 +276,8 @@ func runDownloadFile(cmd *cobra.Command) {
 	acceptableStatus, _ := cmd.Flags().GetString("acceptable-status")
 
 	verbose, _ := cmd.Flags().GetBool("verbose")
+	extract, _ := cmd.Flags().GetBool("extract")
+	keepSourceArchive, _ := cmd.Flags().GetBool("keep-src")
 
 	pipelineID, err := getPipelineID(gl, projectID, refspec, acceptableStatus)
 	if err != nil {
@@ -230,7 +299,17 @@ func runDownloadFile(cmd *cobra.Command) {
 	if err != nil {
 		log.Fatal("Error save: ", err)
 	}
+
 	if verbose {
 		log.Printf("Downloaded: %s", filePath)
+	}
+
+	if extract && fileName == "" {
+		_, err := unzip(filePath, directory, keepSourceArchive)
+		if err != nil {
+			log.Fatal("Unzip error: ", err)
+		} else {
+			os.Exit(1)
+		}
 	}
 }
