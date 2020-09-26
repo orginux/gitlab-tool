@@ -14,7 +14,7 @@ import (
 
 var download = &cobra.Command{
 	Use:     "download",
-	Short:   "Download single file from artifacts",
+	Short:   "Download a single file or all archive from artifacts",
 	Example: "gitlab-tool download --token BebRx.. --project-id 111 --job-name build --file-name file_name.txt --refspec testing",
 	Aliases: []string{"d", "dl"},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -32,7 +32,7 @@ func init() {
 	download.MarkFlagRequired("job-name")
 
 	var fileName string
-	dlFlags.StringVarP(&fileName, "file-name", "f", "", "file name")
+	dlFlags.StringVarP(&fileName, "file-name", "f", "", "download the only file which this name")
 
 	var refspec string
 	dlFlags.StringVarP(&refspec, "refspec", "r", "master", "branch or tag")
@@ -160,7 +160,6 @@ func saveArtifacts(gl *gitlab.Client, projectID, jobID int, refspec, jobName, fi
 			if err != nil {
 				return "", err
 			}
-
 		} else {
 			// if file path in artifacts has subdirectories
 			// example: --file-name "test/file.txt"
@@ -174,6 +173,7 @@ func saveArtifacts(gl *gitlab.Client, projectID, jobID int, refspec, jobName, fi
 		if err != nil {
 			return "", err
 		}
+		return filePath, nil
 	}
 
 	// save all files
