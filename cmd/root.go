@@ -30,7 +30,11 @@ func init() {
 
 	var projectID int
 	rootCmd.PersistentFlags().IntVarP(&projectID, "project-id", "p", 0, "project ID")
-	rootCmd.MarkPersistentFlagRequired("project-id")
+	// rootCmd.MarkPersistentFlagRequired("project-id")
+
+	var refspec string
+	rootCmd.PersistentFlags().StringVarP(&refspec, "refspec", "r", "master", "branch or tag")
+
 }
 
 // Get GitLab token

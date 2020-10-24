@@ -37,9 +37,6 @@ func init() {
 	var fileName string
 	dlFlags.StringVarP(&fileName, "file-name", "f", "", "download the only file which this name")
 
-	var refspec string
-	dlFlags.StringVarP(&refspec, "refspec", "r", "master", "branch or tag")
-
 	var output string
 	dlFlags.StringVarP(&output, "destination", "d", "./", "destination directory")
 
@@ -269,9 +266,10 @@ func unzip(src, dest string, keepSourceArchive, verbose bool) ([]string, error) 
 func runDownloadFile(cmd *cobra.Command) {
 	gl := loginGitlab()
 	projectID, _ := rootCmd.Flags().GetInt("project-id")
+	refspec, _ := rootCmd.Flags().GetString("refspec")
+
 	jobName, _ := cmd.Flags().GetString("job-name")
 	fileName, _ := cmd.Flags().GetString("file-name")
-	refspec, _ := cmd.Flags().GetString("refspec")
 
 	directory, _ := cmd.Flags().GetString("destination")
 	createDir, _ := cmd.Flags().GetBool("create-dirs")
