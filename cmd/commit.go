@@ -117,7 +117,7 @@ func commitList(cmd *cobra.Command) {
 	for _, commit := range listCommits {
 		if !long {
 			if withStats {
-				fmt.Printf("Commit: %v\nAutor: %s <%s>\nDate: %s\nMessage: %v\nWebURL: %v\nAdditions: %d\nDeletions %d\nTotal: %d\n\n", commit.ID, commit.AuthorName, commit.AuthorEmail, commit.CommittedDate, commit.Message, commit.WebURL, commit.Stats.Additions, commit.Stats.Deletions, commit.Stats.Total)
+				fmt.Printf("Commit: %v\nAutor: %s <%s>\nDate: %s\nMessage: %v\nWebURL: %v\nStats:\n\tAdditions: %d\n\tDeletions %d\n\tTotal: %d\n\n", commit.ID, commit.AuthorName, commit.AuthorEmail, commit.CommittedDate, commit.Message, commit.WebURL, commit.Stats.Additions, commit.Stats.Deletions, commit.Stats.Total)
 			} else {
 				fmt.Printf("Commit: %v\nAutor: %s <%s>\nDate: %s\nMessage: %v\nWebURL: %v\n\n", commit.ID, commit.AuthorName, commit.AuthorEmail, commit.CommittedDate, commit.Message, commit.WebURL)
 			}
