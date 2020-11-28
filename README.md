@@ -34,3 +34,7 @@ simple test:
     - cat local_path/${EXT_FILE_NAME}
 ...
 ```
+#### Get list commints
+```bash
+gitlab-tool --token $API_TOKEN --project-id $PROJECT_ID commit list
+```
