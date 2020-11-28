@@ -47,9 +47,13 @@ build:
   after_script:
     - docker image prune --force
     - docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+  only:
+    - master
 
 simple test:
   stage: test
   image: ${IMAGE_LATEST}
   script:
     - gitlab-tool --help
+  only:
+    - master
