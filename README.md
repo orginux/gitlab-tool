@@ -21,7 +21,7 @@ download all:
 For single file:
 ```yaml
 ...
-simple file:
+single file:
   stage: download
   image: gitlab-tool:latest
   script:
