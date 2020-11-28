@@ -38,3 +38,11 @@ simple test:
 ```bash
 gitlab-tool --token $API_TOKEN --project-id $PROJECT_ID commit list
 ```
+output:
+```bash
+Commit: <commit hash>
+Autor: <autor name> <autor email>
+Date: <date>
+Message: <commit message>
+WebURL: <commit url>
+```
