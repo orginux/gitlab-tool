@@ -15,7 +15,7 @@ const (
 
 var commitCmd = &cobra.Command{
 	Use:     "commit",
-	Short:   "",
+	Short:   "Interaction with commits",
 	Example: "",
 	// Aliases: []string{""},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -26,7 +26,7 @@ var commitCmd = &cobra.Command{
 
 var listCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "",
+	Short:   "Get list commits",
 	Example: "",
 	Aliases: []string{"ls"},
 	Run: func(cmd *cobra.Command, args []string) {
