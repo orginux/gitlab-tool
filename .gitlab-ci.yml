@@ -1,0 +1,55 @@
+---
+stages:
+  - linter
+  - build image
+  - test
+
+variables:
+  IMAGE_TAG: orginux/gitlab-tool
+  IMAGE_LATEST: ${IMAGE_TAG}:latest
+
+.linter:
+  stage: linter
+
+gofmt:
+  extends: .linter
+  image: golang:1.15-alpine
+  script:
+    - gofmt -d .
+
+hadolint:
+  extends: .linter
+  image: hadolint/hadolint:v1.18.2-alpine
+  script:
+    - hadolint docker/*
+
+build:
+  stage: build image
+  image: docker:19.03.13
+  variables:
+    DOCKER_HOST: "tcp://dind_docker:2375"
+  services:
+    - name: docker:19.03.13-dind
+      alias: dind_docker
+  before_script:
+    - apk add --no-cache make
+    - docker login
+        --username $DOCKER_USER
+        --password $DOCKER_PASSWORD
+    - docker pull --quiet $IMAGE_LATEST || true
+  script:
+    - docker build
+        --cache-from $IMAGE_LATEST
+        --file docker/Dockerfile
+        --tag $IMAGE_LATEST
+        .
+    - docker push $IMAGE_LATEST
+  after_script:
+    - docker image prune --force
+    - docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+
+simple test:
+  stage: test
+  image: ${IMAGE_LATEST}
+  script:
+    - gitlab-tool --help
