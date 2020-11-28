@@ -15,6 +15,7 @@ download all:
         --destination local_path/
         --job-name $EXT_JOB_NAME
         --create-dirs
+        --extract
     - ls -l local_path/
 ...
 ```
