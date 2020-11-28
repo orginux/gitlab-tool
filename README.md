@@ -6,7 +6,7 @@ If need download artifacts from an external project set `GITLAB_PRIVATE_TOKEN` i
 Download all artifacts for job:
 ```yaml
 ...
-simple test:
+download all:
   stage: download
   image: gitlab-tool:latest
   script:
@@ -21,7 +21,7 @@ simple test:
 For single file:
 ```yaml
 ...
-simple test:
+simple file:
   stage: download
   image: gitlab-tool:latest
   script:
