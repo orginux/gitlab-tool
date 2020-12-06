@@ -210,9 +210,8 @@ func unzip(src, dest string, keepSourceArchive, verbose bool) ([]string, error) 
 
 	for _, f := range r.File {
 		fpath := filepath.Join(dest, f.Name)
-
-		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-			return filenames, fmt.Errorf("%s: illegal file path", fpath)
+		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) && f.Name != "./" {
+			return filenames, fmt.Errorf("illegal file path: '%s'", fpath)
 		}
 
 		filenames = append(filenames, fpath)
