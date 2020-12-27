@@ -38,7 +38,7 @@ func init() {
 	dlFlags.StringVarP(&fileName, "file-name", "f", "", "download the only file which this name")
 
 	var output string
-	dlFlags.StringVarP(&output, "destination", "d", "./", "destination directory")
+	dlFlags.StringVarP(&output, "dest", "d", "./", "destination directory")
 
 	var createDir bool
 	dlFlags.BoolVarP(&createDir, "create-dirs", "c", false, "create necessary local directory hierarchy")
