@@ -49,6 +49,9 @@ func init() {
 	// var status string
 	// dlFlags.StringVarP(&status, "pipeline-status", "s", "success", "status of pipelines, one of: manual, failed, canceled;")
 
+	var pipelineID int
+	dlFlags.IntVarP(&pipelineID, "pipeline-id", "", 0, "Download artifacts from specific pipeline ID")
+
 	var acceptablePipelinesStatus string
 	dlFlags.StringVarP(&acceptablePipelinesStatus, "acceptable-status", "a", "", "acceptable pipeline status for download artefacts")
 
@@ -97,12 +100,14 @@ func getPipelineID(gl *gitlab.Client, projectID int, branch, acceptableStatus st
 
 // get latest job ID
 func getJobID(gl *gitlab.Client, projectID, pipelineID int, jobName string) (int, error) {
+	fmt.Println("Find job in pipeline: ", pipelineID)
 	listJobs, _, err := gl.Jobs.ListPipelineJobs(projectID, pipelineID, nil)
 	if err != nil {
 		return -1, err
 	}
 	for _, job := range listJobs {
 		if job.Name == jobName {
+			fmt.Println(job)
 			jobID := job.ID
 			return jobID, nil
 		}
@@ -274,16 +279,21 @@ func runDownloadFile(cmd *cobra.Command) {
 	createDir, _ := cmd.Flags().GetBool("create-dirs")
 
 	// basicStaus, _ := cmd.Flags().GetString("pipeline-status")
+	pipelineID, _ := cmd.Flags().GetInt("pipeline-id")
 	acceptableStatus, _ := cmd.Flags().GetString("acceptable-status")
 
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	extract, _ := cmd.Flags().GetBool("extract")
 	keepSourceArchive, _ := cmd.Flags().GetBool("keep-src")
 
-	pipelineID, err := getPipelineID(gl, projectID, refspec, acceptableStatus)
-	if err != nil {
-		log.Fatal("Error get pipeline: ", err)
+	if pipelineID == 0 {
+		var err error
+		pipelineID, err = getPipelineID(gl, projectID, refspec, acceptableStatus)
+		if err != nil {
+			log.Fatal("Error get pipeline: ", err)
+		}
 	}
+
 	if verbose {
 		log.Printf("Pipeline ID: %d\n", pipelineID)
 	}
@@ -293,7 +303,7 @@ func runDownloadFile(cmd *cobra.Command) {
 		log.Fatal("Error get job: ", err)
 	}
 	if verbose {
-		log.Printf("Job ID: %d", pipelineID)
+		log.Printf("Job ID: %d", jobID)
 	}
 
 	filePath, err := saveArtifacts(gl, projectID, jobID, refspec, jobName, fileName, directory, createDir)
