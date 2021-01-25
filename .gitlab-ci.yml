@@ -17,6 +17,12 @@ gofmt:
   script:
     - gofmt -d .
 
+golangci-lint:
+  extends: .linter
+  image: golangci/golangci-lint:v1.35.2
+  script:
+    golangci-lint run -v
+
 hadolint:
   extends: .linter
   image: hadolint/hadolint:v1.18.2-alpine
