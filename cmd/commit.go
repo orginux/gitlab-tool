@@ -20,7 +20,6 @@ var commitCmd = &cobra.Command{
 	// Aliases: []string{""},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Use one of the subcommands")
-		cmd.Help()
 	},
 }
 

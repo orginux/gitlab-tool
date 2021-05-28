@@ -223,7 +223,10 @@ func unzip(src, dest string, keepSourceArchive, verbose bool) ([]string, error) 
 
 		if f.FileInfo().IsDir() {
 			// Make Folder
-			os.MkdirAll(fpath, os.ModePerm)
+			err = os.MkdirAll(fpath, os.ModePerm)
+			if err != nil {
+				return nil, err
+			}
 			continue
 		}
 
